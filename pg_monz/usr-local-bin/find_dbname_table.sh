@@ -35,7 +35,18 @@ GETDB="select datname from pg_database where datistemplate = 'f';"
 #              tablename in ('pgbench_accounts','pgbench_branches','pgbench_history','pgbench_tellers') \
 #           ) as t"
 
-GETTABLE="select row_to_json(t) from (select current_database() as \"{#DBNAME}\",schemaname as \"{#SCHEMANAME}\",tablename as \"{#TABLENAME}\" from pg_tables where schemaname not in ('pg_catalog','information_schema')) as t"
+GETTABLE="\
+	select row_to_json(t) 
+	from 
+	(	select 
+			current_database() as \"{#DBNAME}\"
+		,	schemaname as \"{#SCHEMANAME}\"
+		,	tablename as \"{#TABLENAME}\" 
+		from
+			pg_catalog.pg_tables
+		where
+			schemaname not in ('pg_catalog','information_schema')
+	) as t"
 
 # Load the psql connection option parameters.
 source $PGSHELL_CONFDIR/pgsql_funcs.conf
