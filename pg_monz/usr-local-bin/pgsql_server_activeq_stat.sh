@@ -7,9 +7,9 @@ GETROW="
 select row_to_json(t)
 from
 	(	select
-			count(*) as query_slow
-		,	coalesce(sum(case when query ~* '^(insert|update|delete)' then 1 else 0 end), 0) as query_wr_slow
-		,	coalesce(sum(case when query ilike 'select%' then 1 else 0 end), 0) as query_rd_slow
+			count(*) as tot
+		,	coalesce(sum(case when query ~* '^(insert|update|delete)' then 1 else 0 end), 0) as wr
+		,	coalesce(sum(case when query ilike 'select%' then 1 else 0 end), 0) as rd
 		from pg_catalog.pg_stat_activity
 		where
 			state = 'active'
@@ -19,5 +19,5 @@ from
 # Load the psql connection option parameters.
 source $PGSHELL_CONFDIR/pgsql_funcs.conf
 
-psql -h $PGHOST -p $PGPORT -U $PGROLE -d postgres -t -X -c "$GETROW"
-
+result=$(psql -h $PGHOST -p $PGPORT -U $PGROLE -d $PGDATABASE -t -X -c "$GETROW" 2>&1)
+echo "$result"

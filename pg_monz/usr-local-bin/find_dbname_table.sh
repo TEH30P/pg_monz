@@ -42,6 +42,7 @@ GETTABLE="\
 			current_database() as \"{#DBNAME}\"
 		,	schemaname as \"{#SCHEMANAME}\"
 		,	tablename as \"{#TABLENAME}\" 
+		,	quote_ident(schemaname) || '.' || quote_ident(tablename) as \"{#RELFULLNAME}\" 
 		from
 			pg_catalog.pg_tables
 		where

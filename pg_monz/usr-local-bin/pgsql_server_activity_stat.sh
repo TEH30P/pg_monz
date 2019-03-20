@@ -16,11 +16,11 @@ if [ `echo "$PGVERSION >= 10.0" | bc` -eq 1 ] ; then
 	select row_to_json(t)
 	from
 		(	select
-				sum(case when state = 'active' then 1 else 0 end) as cnn_active
-			,	sum(case when state = 'idle' then 1 else 0 end) as cnn_idle
-			,	sum(case when state = 'idle in transaction' then 1 else 0 end) as cnn_idle_in_tran
-			,	sum(case when backend_type = 'client backend' then 1 else 0 end) as cnn
-			,	sum(case when backend_type = 'client backend' and wait_event_type like '%Lock%' then 1 else 0 end) as cnn_lck_wait
+				sum(case when state = 'active' then 1 else 0 end)                as act
+			,	sum(case when state = 'idle' then 1 else 0 end)                  as idl
+			,	sum(case when state = 'idle in transaction' then 1 else 0 end)   as idlit
+			,	sum(case when backend_type = 'client backend' then 1 else 0 end) as tot
+			,	sum(case when backend_type = 'client backend' and wait_event_type like '%Lock%' then 1 else 0 end) as lckw
 			from pg_catalog.pg_stat_activity
 		) t;"
 elif [ `echo "$PGVERSION >= 9.6" | bc` -eq 1 ] ; then
@@ -28,11 +28,11 @@ elif [ `echo "$PGVERSION >= 9.6" | bc` -eq 1 ] ; then
 	select row_to_json(t)
 	from
 		(	select
-				sum(case when state = 'active' then 1 else 0 end) as cnn_active
-			,	sum(case when state = 'idle' then 1 else 0 end) as cnn_idle
-			,	sum(case when state = 'idle in transaction' then 1 else 0 end) as cnn_idle_in_tran
-			,	count(*) as cnn
-			,	sum(case when wait_event_type like '%Lock%' then 1 else 0 end) as cnn_lck_wait
+				sum(case when state = 'active' then 1 else 0 end)                as act
+			,	sum(case when state = 'idle' then 1 else 0 end)                  as idl
+			,	sum(case when state = 'idle in transaction' then 1 else 0 end)   as idlit
+			,	count(*)                                                         as tot
+			,	sum(case when wait_event_type like '%Lock%' then 1 else 0 end)   as lckw
 			from pg_catalog.pg_stat_activity
 		) t;"
 else
@@ -40,14 +40,14 @@ else
 	select row_to_json(t)
 	from
 		(	select
-				sum(case when state = 'active' then 1 else 0 end) as cnn_active
-			,	sum(case when state = 'idle' then 1 else 0 end) as cnn_idle
-			,	sum(case when state = 'idle in transaction' then 1 else 0 end) as cnn_idle_in_tran
-			,	count(*) as cnn
-			,	sum(case when waiting = 'true' then 1 else 0 end) as cnn_lck_wait
-		from pg_catalog.pg_stat_activity
+				sum(case when state = 'active' then 1 else 0 end)                as act
+			,	sum(case when state = 'idle' then 1 else 0 end)                  as idl
+			,	sum(case when state = 'idle in transaction' then 1 else 0 end)   as idlit
+			,	count(*)                                                         as tot
+			,	sum(case when waiting = 'true' then 1 else 0 end)                as lckw
+			from pg_catalog.pg_stat_activity
 		) t;"
 fi
 
-psql -h $PGHOST -p $PGPORT -U $PGROLE -d postgres -t -X -c "$GETROW"
-
+result=$(psql -h $PGHOST -p $PGPORT -U $PGROLE -d $PGDATABASE -t -X -c "$GETROW" 2>&1)
+echo "$result"
